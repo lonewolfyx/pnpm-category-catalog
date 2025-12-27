@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises'
-import { multiselect } from '@clack/prompts'
+import { multiselect, text } from '@clack/prompts'
 import cac from 'cac'
 import { findUp } from 'find-up'
 import { parse } from 'yaml'
@@ -34,6 +34,12 @@ cli.command('')
                 label: key,
             })),
 
+        })
+
+        const catalogsName = await text({
+            message: '请输入自定义分类名称',
+            placeholder: '',
+            defaultValue: '',
         })
 
         // 将选择的结果与 catalog 匹配，得到 key: value 版本号
