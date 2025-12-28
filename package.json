@@ -31,6 +31,7 @@
     "scripts": {
         "dev": "tsdown --watch",
         "build": "tsdown",
+        "test": "vitest",
         "lint": "eslint",
         "lint:fix": "eslint --fix",
         "prepublishOnly": "pnpm build"
@@ -60,7 +61,8 @@
         "simple-git-hooks": "^2.13.1",
         "tsdown": "^0.18.2",
         "tsx": "^4.21.0",
-        "typescript": "^5.9.3"
+        "typescript": "^5.9.3",
+        "vitest": "^4.0.16"
     },
     "simple-git-hooks": {
         "pre-commit": "npx lint-staged",

@@ -1,4 +1,4 @@
-import type { IConfig, IWorkSpace, IWorkSpaceConfig, IWorkSpaceContext } from '@/types.ts'
+import type { AllCatalogsType, CatalogsContextType, IConfig, IWorkSpace, IWorkSpaceConfig, IWorkSpaceContext, IWorkSpaceYaml } from '@/types'
 import { readFile } from 'node:fs/promises'
 import { confirm, multiselect, outro, text } from '@clack/prompts'
 import boxen from 'boxen'
@@ -19,6 +19,176 @@ export const getWorkSpaceYaml = async (config: IConfig): Promise<IWorkSpace> => 
     return {
         workSpaceYamlPath,
         workspace: parse(await readFile(workSpaceYamlPath, 'utf-8')),
+    }
+}
+export const updateCatalogsWithContext = (options: CatalogsContextType) => {
+    const { choice, context, catalogsName, dependencies } = options
+    // 从 context.catalog 中删除选中的 key
+    choice.forEach((key: string) => {
+        delete context.catalog![key]
+    })
+
+    // 确保 context.catalogs 存在
+    if (!context.catalogs) {
+        context.catalogs = {}
+    }
+
+    // 检查节点是否存在，存在则合并，不存在则创建
+    if (context.catalogs[catalogsName]) {
+        context.catalogs[catalogsName] = {
+            ...context.catalogs[catalogsName],
+            ...dependencies,
+        }
+        // console.log(`✅ 已将 ${choice.length} 个包合并到 catalogs.${catalogsName} 节点中`)
+    }
+    else {
+        context.catalogs[catalogsName] = dependencies
+        // console.log(`✅ 已将 ${choice.length} 个包添加到 catalogs.${catalogsName} 节点中`)
+    }
+    return context
+}
+
+interface ConfirmModifiyOptions {
+    allCatalogs: AllCatalogsType[]
+    config: IWorkSpaceConfig
+    context: IWorkSpaceYaml
+}
+
+/**
+ * final confirmation to save all changes
+ */
+export const confirmModifiy = async (options: ConfirmModifiyOptions): Promise<IWorkSpaceContext | null> => {
+    const { allCatalogs, config, context } = options
+    if (allCatalogs.length === 0) {
+        outro('用户当前已取消操作')
+        return null
+    }
+
+    const finalConfirm = await confirm({
+        message: `已完成 ${allCatalogs.length} 个分类的创建，确认保存所有更改到 pnpm-workspace.yaml？`,
+    }) as boolean
+
+    if (!finalConfirm) {
+        outro('❌ 用户取消保存，所有更改将被丢弃')
+        return null
+    }
+
+    outro('✅ 用户确认保存所有更改')
+
+    // 对于批量处理，返回所有分类的完整信息
+    const allDependencies: Record<string, string> = {}
+    const catalogNames: string[] = []
+
+    allCatalogs.forEach((catalog) => {
+        catalogNames.push(catalog.name)
+        Object.assign(allDependencies, catalog.dependencies)
+    })
+
+    return {
+        path: config.workSpaceYamlPath,
+        context: stringify(context, {
+            indent: 2,
+            lineWidth: 0,
+            minContentWidth: 0,
+        }),
+        catalogs: {
+            choice: allCatalogs.flatMap(c => c.choice),
+            name: catalogNames.join(', '),
+            dependencies: allDependencies,
+            categories: allCatalogs.map(c => ({
+                name: c.name,
+                packages: c.choice,
+                dependencies: c.dependencies,
+            })),
+        },
+    }
+}
+
+interface ProcessCatalogOptionsType {
+    allCatalogs: AllCatalogsType[]
+    context: IWorkSpaceYaml
+}
+
+const processCatalog = async (options: ProcessCatalogOptionsType) => {
+    const { context, allCatalogs } = options
+    let continueProcessing = true
+
+    while (continueProcessing) {
+        const remainingKeys = Object.keys(context.catalog || {})
+
+        if (remainingKeys.length === 0) {
+            outro('✅ 所有包已处理完毕')
+            break
+        }
+
+        // console.log(`\n剩余 ${remainingKeys.length} 个包待处理:`)
+        // remainingKeys.forEach((key) => {
+        //     console.log(`  - ${key}: ${context.catalog![key]}`)
+        // })
+
+        const choice = await multiselect({
+            message: '请选择要分类的依赖包 (如无需操作，请回车跳过本轮)',
+            options: remainingKeys.map(key => ({
+                value: key,
+                label: key,
+            })),
+            required: false,
+        }) as string[]
+
+        isCancelProcess(choice, CANCEL_PROCESS)
+
+        if (!choice || choice.length === 0) {
+            // console.log('本轮未选择任何包')
+        }
+        else {
+            const catalogsName = await text({
+                message: '请输入分类名称',
+                placeholder: '',
+                defaultValue: '',
+            }) as string
+
+            isCancelProcess(catalogsName, CANCEL_PROCESS)
+
+            if (catalogsName && catalogsName.trim()) {
+                // 将选择的结果与 catalog 匹配，得到 key: value 版本号
+                const dependencies: Record<string, string> = {}
+                choice.forEach((key: string) => {
+                    dependencies[key] = context.catalog![key]!
+                })
+
+                // console.log(`分类 "${catalogsName}" 将包含以下包:`)
+                // Object.entries(dependencies).forEach(([key, version]) => {
+                //     console.log(`  - ${key}: ${version}`)
+                // })
+
+                // 确认操作
+                const confirmed = await confirm({
+                    message: `确认将这 ${choice.length} 个包添加到分类 "${catalogsName}" 中？`,
+                }) as boolean
+
+                isCancelProcess(confirmed, CANCEL_PROCESS)
+
+                if (confirmed)
+                    updateCatalogsWithContext({ choice, context, catalogsName, dependencies })
+                if (confirmed) {
+                    // 保存本轮操作结果
+                    allCatalogs.push({ choice, name: catalogsName, dependencies })
+                }
+            }
+        }
+
+        // 询问是否继续处理
+        if (Object.keys(context.catalog || {}).length > 0) {
+            continueProcessing = await confirm({
+                message: '是否继续处理剩余的包？',
+                initialValue: false,
+            }) as boolean
+
+            isCancelProcess(continueProcessing, CANCEL_PROCESS)
+        }
+        else {
+            continueProcessing = false
+        }
     }
 }
 
@@ -108,7 +278,6 @@ export const getNewWorkSpaceYaml = async (config: IWorkSpaceConfig): Promise<IWo
 export const batchProcessCatalog = async (config: IWorkSpaceConfig): Promise<IWorkSpaceContext | null> => {
     const context = config.workspace
     if (!context.catalog) {
-        // throw new Error('暂无 catalog')
         outro('')
         console.log(boxen(
             `If you have an existing workspace that you want to migrate to using catalogs,
@@ -148,160 +317,8 @@ Run "pnpx codemod pnpm/catalog"`,
     //     console.log(`  - ${key}: ${catalog[key]}`)
     // })
 
-    const allCatalogs: Array<{
-        choice: string[]
-        name: string
-        dependencies: Record<string, string>
-    }> = []
+    const allCatalogs: AllCatalogsType[] = []
 
-    let continueProcessing = true
-
-    while (continueProcessing) {
-        const remainingKeys = Object.keys(context.catalog || {})
-
-        if (remainingKeys.length === 0) {
-            outro('✅ 所有包已处理完毕')
-            break
-        }
-
-        // console.log(`\n剩余 ${remainingKeys.length} 个包待处理:`)
-        // remainingKeys.forEach((key) => {
-        //     console.log(`  - ${key}: ${context.catalog![key]}`)
-        // })
-
-        const choice = await multiselect({
-            message: '请选择要分类的依赖包 (如无需操作，请回车跳过本轮)',
-            options: remainingKeys.map(key => ({
-                value: key,
-                label: key,
-            })),
-            required: false,
-        }) as string[]
-
-        isCancelProcess(choice, CANCEL_PROCESS)
-
-        if (!choice || choice.length === 0) {
-            // console.log('本轮未选择任何包')
-        }
-        else {
-            const catalogsName = await text({
-                message: '请输入分类名称',
-                placeholder: '',
-                defaultValue: '',
-            }) as string
-
-            isCancelProcess(catalogsName, CANCEL_PROCESS)
-
-            if (catalogsName && catalogsName.trim()) {
-                // 将选择的结果与 catalog 匹配，得到 key: value 版本号
-                const dependencies: Record<string, string> = {}
-                choice.forEach((key: string) => {
-                    dependencies[key] = context.catalog![key]!
-                })
-
-                // console.log(`分类 "${catalogsName}" 将包含以下包:`)
-                // Object.entries(dependencies).forEach(([key, version]) => {
-                //     console.log(`  - ${key}: ${version}`)
-                // })
-
-                // 确认操作
-                const confirmed = await confirm({
-                    message: `确认将这 ${choice.length} 个包添加到分类 "${catalogsName}" 中？`,
-                }) as boolean
-
-                isCancelProcess(confirmed, CANCEL_PROCESS)
-
-                if (confirmed) {
-                    // 从 context.catalog 中删除选中的 key
-                    choice.forEach((key: string) => {
-                        delete context.catalog![key]
-                    })
-
-                    // 确保 context.catalogs 存在
-                    if (!context.catalogs) {
-                        context.catalogs = {}
-                    }
-
-                    // 检查节点是否存在，存在则合并，不存在则创建
-                    if (context.catalogs[catalogsName]) {
-                        context.catalogs[catalogsName] = {
-                            ...context.catalogs[catalogsName],
-                            ...dependencies,
-                        }
-                        // console.log(`✅ 已将 ${choice.length} 个包合并到 catalogs.${catalogsName} 节点中`)
-                    }
-                    else {
-                        context.catalogs[catalogsName] = dependencies
-                        // console.log(`✅ 已将 ${choice.length} 个包添加到 catalogs.${catalogsName} 节点中`)
-                    }
-
-                    // 保存本轮操作结果
-                    allCatalogs.push({
-                        choice,
-                        name: catalogsName,
-                        dependencies,
-                    })
-                }
-            }
-        }
-
-        // 询问是否继续处理
-        if (Object.keys(context.catalog || {}).length > 0) {
-            continueProcessing = await confirm({
-                message: '是否继续处理剩余的包？',
-                initialValue: false,
-            }) as boolean
-
-            isCancelProcess(continueProcessing, CANCEL_PROCESS)
-        }
-        else {
-            continueProcessing = false
-        }
-    }
-
-    // 最终确认是否要保存所有更改
-    if (allCatalogs.length > 0) {
-        const finalConfirm = await confirm({
-            message: `已完成 ${allCatalogs.length} 个分类的创建，确认保存所有更改到 pnpm-workspace.yaml？`,
-        }) as boolean
-
-        if (!finalConfirm) {
-            outro('❌ 用户取消保存，所有更改将被丢弃')
-            return null
-        }
-
-        outro('✅ 用户确认保存所有更改')
-
-        // 对于批量处理，返回所有分类的完整信息
-        const allDependencies: Record<string, string> = {}
-        const catalogNames: string[] = []
-
-        allCatalogs.forEach((catalog) => {
-            catalogNames.push(catalog.name)
-            Object.assign(allDependencies, catalog.dependencies)
-        })
-
-        return {
-            path: config.workSpaceYamlPath,
-            context: stringify(context, {
-                indent: 2,
-                lineWidth: 0,
-                minContentWidth: 0,
-            }),
-            catalogs: {
-                choice: allCatalogs.flatMap(c => c.choice),
-                name: catalogNames.join(', '),
-                dependencies: allDependencies,
-                categories: allCatalogs.map(c => ({
-                    name: c.name,
-                    packages: c.choice,
-                    dependencies: c.dependencies,
-                })),
-            },
-        }
-    }
-    else {
-        outro('用户当前已取消操作')
-        return null
-    }
+    await processCatalog({ allCatalogs, context })
+    return await confirmModifiy({ allCatalogs, config, context })
 }

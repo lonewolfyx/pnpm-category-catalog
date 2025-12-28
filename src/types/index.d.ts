@@ -16,9 +16,13 @@ export interface IWorkSpace {
 }
 
 export interface IWorkSpaceYaml {
-    catalog?: {
-        [key: string]: string
-    }
+    /**
+     * unclassified catalog
+     */
+    catalog?: Record<string, string>
+    /**
+     * classified catalogs
+     */
     catalogs?: Record<string, Record<string, string>>
 }
 
@@ -45,4 +49,29 @@ export interface IUpdatePackage {
     path: string
     context: string
     isUpdate: boolean
+}
+
+export interface CatalogsContextType {
+    /**
+     * selected package names list
+     */
+    choice: string[]
+    /**
+     * original content object from pnpm-workspace.yaml
+     */
+    context: IWorkSpaceYaml
+    /**
+     * inputed category name
+     */
+    catalogsName: string
+    /**
+     * selected packages list
+     */
+    dependencies: Record<string, string>
+}
+
+export interface AllCatalogsType {
+    choice: string[]
+    name: string
+    dependencies: Record<string, string>
 }

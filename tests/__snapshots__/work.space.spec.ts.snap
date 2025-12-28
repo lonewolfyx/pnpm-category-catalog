@@ -1,0 +1,49 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`updateCatalogsWithContext > catalogs is defined 1`] = `
+{
+  "catalog": {
+    "package3": "3.0.0",
+  },
+  "catalogs": {
+    "lint": {
+      "eslint": "^9.39.2",
+    },
+    "newCatalog": {
+      "package1": "1.0.0",
+      "package2": "2.0.0",
+    },
+  },
+}
+`;
+
+exports[`updateCatalogsWithContext > catalogs is not defined 1`] = `
+{
+  "catalog": {
+    "package3": "3.0.0",
+  },
+  "catalogs": {
+    "lint": {
+      "eslint": "^9.39.2",
+    },
+    "newCatalog": {
+      "package1": "1.0.0",
+      "package2": "2.0.0",
+    },
+  },
+}
+`;
+
+exports[`updateCatalogsWithContext > should merge catalogs correctly 1`] = `
+{
+  "catalog": {
+    "package3": "3.0.0",
+  },
+  "catalogs": {
+    "newCatalog": {
+      "package1": "1.0.0",
+      "package2": "2.0.0",
+    },
+  },
+}
+`;
