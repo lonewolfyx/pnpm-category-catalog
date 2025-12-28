@@ -2,7 +2,7 @@ import type { IConfig, IUpdatePackage, IWorkSpaceContext } from '@/types.ts'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-export const updatePackageDependencies = (
+export const resolvePackageDependencies = (
     config: IConfig,
     packagePathMap: string[],
     workspace: IWorkSpaceContext,
