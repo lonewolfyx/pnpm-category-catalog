@@ -112,7 +112,7 @@ export const batchProcessCatalog = async (config: IWorkSpaceConfig): Promise<IWo
     const catalogKeys = Object.keys(catalog)
 
     if (catalogKeys.length === 0) {
-        console.log('✅ catalog 已经为空，无需处理')
+        outro('✅ pnpm-workspace.yaml catalog 已经为空，无需处理')
         return null
     }
 
@@ -143,7 +143,7 @@ export const batchProcessCatalog = async (config: IWorkSpaceConfig): Promise<IWo
         const remainingKeys = Object.keys(context.catalog || {})
 
         if (remainingKeys.length === 0) {
-            console.log('✅ 所有包已处理完毕')
+            outro('✅ 所有包已处理完毕')
             break
         }
 
