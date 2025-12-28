@@ -24,6 +24,12 @@ export interface IWorkSpaceYaml {
 
 export type IWorkSpaceConfig = IConfig & IWorkSpace
 
+export interface ICatalogsCategories {
+    name: string
+    packages: string[]
+    dependencies: Record<string, string>
+}
+
 export interface IWorkSpaceContext {
     path: string
     context: string
@@ -31,11 +37,7 @@ export interface IWorkSpaceContext {
         choice: string[]
         name: string
         dependencies: Record<string, string>
-        categories?: Array<{
-            name: string
-            packages: string[]
-            dependencies: Record<string, string>
-        }>
+        categories?: ICatalogsCategories[]
     }
 }
 
