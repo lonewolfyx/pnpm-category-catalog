@@ -14,24 +14,6 @@ points:
 
 <img src="https://github.com/lonewolfyx/pnpm-category-catalog/raw/master/screenshot.gif" alt="screenshot">
 
-## 📦 Installation
-
-### Global Installation
-
-```bash
-npm install -g pnpm-category-catalog
-# or
-pnpm add -g pnpm-category-catalog
-```
-
-### Project Installation
-
-```bash
-npm install pnpm-category-catalog
-# or
-pnpm add pnpm-category-catalog
-```
-
 ## 🛠️ Usage
 
 ### Prerequisites
@@ -48,8 +30,7 @@ Run in the project root directory:
 pcc
 ```
 
-## 💡 Best Practices
-> [!TIP]
+## 📦 Best Practices
 > 👀 Interested in pnpm catalogs? Recommend you read this post: [Categorize Your Dependencies](https://antfu.me/posts/categorize-deps) by Anthony.
 
 ### Direct Execution
