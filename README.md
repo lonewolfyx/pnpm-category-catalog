@@ -8,9 +8,13 @@ points:
 - **Batch Category Management**: Process all dependencies in catalog at once, categorizing them by function or purpose
 - **Automatic Reference Updates**: Automatically update dependency references in package.json files of sub-projects to
   `catalog:category-name` format
-- **Interactive Operations**: Provide a friendly command-line interactive interface with confirmation and cancellation
+- **Interactive Operations**: Provide a friendly command-line interactive interface with confirm, cancel and undo
   support
 - **Batch Processing**: Support loop processing until all packages are categorized
+
+<p align="center">
+    English | [中文](https://github.com/ScaffoldCore/pnpm-category-catalog/blob/master/README_ZH.md)
+</p>
 
 <img src="https://github.com/lonewolfyx/pnpm-category-catalog/raw/master/screenshot.gif" alt="screenshot">
 
@@ -18,11 +22,41 @@ points:
 
 ### Prerequisites
 
-1. Project must use pnpm workspace
-2. `pnpm-workspace.yaml` file must exist in the project root directory
-3. `pnpm-workspace.yaml` file must contain `catalog` configuration
+1. Project must use `pnpm workspace`.
+2. `pnpm-workspace.yaml` file must exist in the project root directory.
+3. `pnpm-workspace.yaml` file must contain `catalog` configuration.
 
-### Basic Usage
+### 📦 Best Practices
+
+> 👀 Interested in pnpm catalogs? Recommend you read this
+> post: [Categorize Your Dependencies](https://antfu.me/posts/categorize-deps) by [Anthony](https://antfu.me/).
+
+### Direct Execution
+
+> [!TIP]
+> You can execute directly or install globally. The following examples use direct execution:
+
+```bash
+# 1. migrate to `pnpm catalog` (execute this command if not yet migrated).
+pnpx codemod pnpm/catalog
+
+# 2. execute custom category migration command.
+npx pnpm-category-catalog
+```
+
+### Global Usage
+
+If you want to use the command globally, you can do this:
+
+#### Global Installation
+
+```bash
+npm install -g pnpm-category-catalog
+# or
+pnpm add -g pnpm-category-catalog
+```
+
+#### Run
 
 Run in the project root directory:
 
@@ -30,33 +64,24 @@ Run in the project root directory:
 pcc
 ```
 
-## 📦 Best Practices
-> 👀 Interested in pnpm catalogs? Recommend you read this post: [Categorize Your Dependencies](https://antfu.me/posts/categorize-deps) by Anthony.
-
-### Direct Execution
-> [!TIP]
-> You can execute directly or install globally. The following examples use direct execution:
-
-```bash
-# 1. migrate to pnpm catalog (execute this command if not yet migrated).
-pnpx codemod pnpm/catalog
-
-# 2. execute custom category migration command.
-npx pnpm-category-catalog
-```
-
 ## 🔧 Extensions
+
 ### ESLint Ecosystem
-If you want to use ESLint for some [constraints](https://github.com/antfu/pnpm-workspace-utils), you can choose one of the following methods (optional):
+
+If you want to use ESLint for some [constraints](https://github.com/antfu/pnpm-workspace-utils), you can choose one of
+the following methods (optional):
 
 1. If you are using [`@antfu/eslint-config`](https://github.com/antfu/eslint-config)
+
 ```ts
 export default antfu({
     pnpm: true,
     // other options ...
 })
 ```
-2. If you are not using `@antfu/eslint-config`, use it directly in `eslint.config.js`. For details, see: [pnpm-workspace-utils](https://github.com/antfu/pnpm-workspace-utils/tree/main/packages/eslint-plugin-pnpm)
+
+2. If you are not using `@antfu/eslint-config`, use it directly in `eslint.config.js`. For details,
+   see: [pnpm-workspace-utils](https://github.com/antfu/pnpm-workspace-utils/tree/main/packages/eslint-plugin-pnpm)
 
 ## 🤝 Contributing
 
@@ -74,8 +99,8 @@ pnpm dev:basic
 
 #### Example Scenarios
 
-| Command | Description |
-|---------|-------------|
+| Command          | Description                                                |
+|------------------|------------------------------------------------------------|
 | `pnpm dev:basic` | Basic scenario: all deps in `catalog`, not yet categorized |
 
 Each run automatically resets to initial state, so you can test repeatedly without pollution.
