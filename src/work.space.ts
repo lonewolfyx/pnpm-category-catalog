@@ -1,7 +1,7 @@
 import type { AllCatalogsType, CatalogsContextType, IConfig, IWorkSpace, IWorkSpaceConfig, IWorkSpaceContext, IWorkSpaceYaml } from '@/types'
 import type { DependencyUsageMap } from '@/utils.ts'
 import { readFile } from 'node:fs/promises'
-import { confirm, multiselect, outro, text } from '@clack/prompts'
+import { confirm, multiselect, outro, select, text } from '@clack/prompts'
 import boxen from 'boxen'
 import { findUp } from 'find-up'
 import { parse, stringify } from 'yaml'
@@ -148,11 +148,40 @@ const processCatalog = async (options: ProcessCatalogOptionsType) => {
             // console.log('本轮未选择任何包')
         }
         else {
-            const catalogsName = await text({
-                message: '请输入分类名称',
-                placeholder: '',
-                defaultValue: '',
-            }) as string
+            // console.log(context,'context')
+            const existingCatalogs = Object.keys(context.catalogs || {})
+            const NEW_CATALOG = '__new_catalog__'
+            let catalogsName: string
+
+            if (existingCatalogs.length > 0) {
+                const selected = await select({
+                    message: '请选择或创建分类名称',
+                    options: [
+                        { value: NEW_CATALOG, label: '创建新分类' },
+                        ...existingCatalogs.map(name => ({ value: name, label: name })),
+                    ],
+                }) as string
+
+                isCancelProcess(selected, CANCEL_PROCESS)
+
+                if (selected === NEW_CATALOG) {
+                    catalogsName = await text({
+                        message: '请输入分类名称',
+                        placeholder: '',
+                        defaultValue: '',
+                    }) as string
+                }
+                else {
+                    catalogsName = selected
+                }
+            }
+            else {
+                catalogsName = await text({
+                    message: '请输入分类名称',
+                    placeholder: '',
+                    defaultValue: '',
+                }) as string
+            }
 
             isCancelProcess(catalogsName, CANCEL_PROCESS)
 
