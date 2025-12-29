@@ -49,10 +49,21 @@ export interface IWorkSpaceContext {
     }
 }
 
+export interface IResolvedPackageDependencies {
+    dependency: string
+    version: string
+}
+
 export interface IResolvedPackage {
     path: string
     context: string
     isUpdate: boolean
+    dependencies: IResolvedPackageDependencies[]
+}
+
+export interface IResolvedPackageResult {
+    used: IResolvedPackage[]
+    unused: IResolvedPackageDependencies[]
 }
 
 export interface CatalogsContextType {

@@ -56,7 +56,34 @@ cli
                 packagePathMap,
                 workspace,
             )
-            const updatedFiles = pkgFiles.filter(i => i.isUpdate)
+
+            const updatedFiles = pkgFiles.used.filter(i => i.isUpdate)
+
+            if (!updatedFiles.length) {
+                outro('由于您可能选择了未使用到的依赖包，因此未能匹配到 package.json ,所以此进程将结束.')
+                printTable(
+                    workspace.catalogs.categories?.reduce(
+                        (
+                            acc: {
+                                Dependencies: string
+                                Catalog: string
+                            }[],
+                            category,
+                        ) => {
+                            for (const pkg of category.packages) {
+                                acc.push({
+                                    Dependencies: pkg,
+                                    Catalog: `catalog:${category.name}`,
+                                })
+                            }
+                            return acc
+                        },
+                        [],
+                    ),
+                )
+                process.exit(0)
+            }
+
             const filesToBackup = [
                 workspace.path,
                 ...updatedFiles.map(i => i.path),
@@ -82,15 +109,10 @@ cli
             )
 
             // 更新 package.json 中的依赖版本
-            if (updatedFiles.length > 0) {
-                updatedFiles.forEach((i) => {
-                    writeFile(i.path, i.context)
-                })
-                // log.success(`已更新 ${updatedFiles.length} 个 package.json 文件`)
-            }
-            else {
-                log.error('没有需要更新的 package.json 文件')
-            }
+            updatedFiles.forEach((i) => {
+                writeFile(i.path, i.context)
+            })
+            // log.success(`已更新 ${updatedFiles.length} 个 package.json 文件`)
 
             writeFile(
                 workspace.path,

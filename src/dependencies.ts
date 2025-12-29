@@ -1,4 +1,4 @@
-import type { IConfig, IResolvedPackage, IWorkSpaceContext } from '@/types'
+import type { IConfig, IResolvedPackageDependencies, IResolvedPackageResult, IWorkSpaceContext } from '@/types'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { DEPENDENCY_TYPES } from '@/constant.ts'
@@ -7,53 +7,76 @@ export const resolvePackageDependencies = (
     config: IConfig,
     packagePathMap: string[],
     workspace: IWorkSpaceContext,
-): IResolvedPackage[] => {
-    return packagePathMap.map((path: string) => {
+): IResolvedPackageResult => {
+    const { catalogs } = workspace
+
+    const allCatalogDepNames = new Set(Object.keys(catalogs.dependencies))
+    const usedCatalogDepNames = new Set<string>()
+
+    const depToCategoryMap = new Map<string, string>()
+    if (catalogs.categories) {
+        for (const cat of catalogs.categories) {
+            for (const depName of Object.keys(cat.dependencies)) {
+                depToCategoryMap.set(depName, cat.name)
+            }
+        }
+    }
+
+    const usedResults = packagePathMap.map((path: string) => {
         const filePath = resolve(config.cwd, path)
         const fileContent = readFileSync(filePath, 'utf-8')
         const pkgData = JSON.parse(fileContent)
 
         let isUpdated = false
-        DEPENDENCY_TYPES.forEach((depType) => {
-            const dependencies = pkgData[depType]
-            if (dependencies) {
-                Object.keys(dependencies).forEach((depName) => {
-                    // 检查该依赖是否命中 workspace 的 catalog 配置
-                    if (workspace.catalogs.dependencies[depName]) {
-                        let targetVersion: string
+        const hitDependencies: IResolvedPackageDependencies[] = []
 
-                        // 如果有分类信息，使用对应的分类名称
-                        if (workspace.catalogs.categories) {
-                            const category = workspace.catalogs.categories.find(cat =>
-                                cat.dependencies[depName],
-                            )
-                            if (category) {
-                                targetVersion = `catalog:${category.name}`
-                            }
-                            else {
-                                // 如果没找到对应分类，使用组合名称
-                                targetVersion = `catalog:${workspace.catalogs.name}`
-                            }
-                        }
-                        else {
-                            // 兼容单个分类的情况
-                            targetVersion = `catalog:${workspace.catalogs.name}`
-                        }
+        for (const depType of DEPENDENCY_TYPES) {
+            const deps = pkgData[depType] as Record<string, string> | undefined
+            if (!deps)
+                continue
 
-                        // 只有在版本不一致时才标记更新，避免不必要的改动
-                        if (dependencies[depName] !== targetVersion) {
-                            dependencies[depName] = targetVersion
-                            isUpdated = true
-                        }
+            for (const [depName, currentVersion] of Object.entries(deps)) {
+                if (catalogs.dependencies[depName]) {
+                    usedCatalogDepNames.add(depName)
+
+                    const categoryName = depToCategoryMap.get(depName) || catalogs.name
+                    const targetVersion = `catalog:${categoryName}`
+
+                    hitDependencies.push({
+                        dependency: depName,
+                        version: targetVersion,
+                    })
+
+                    if (currentVersion !== targetVersion) {
+                        deps[depName] = targetVersion
+                        isUpdated = true
                     }
-                })
+                }
             }
-        })
+        }
 
         return {
             path: filePath,
-            context: isUpdated ? `${JSON.stringify(pkgData, null, 2)}\n` : fileContent,
             isUpdate: isUpdated,
+            context: isUpdated ? `${JSON.stringify(pkgData, null, 2)}\n` : fileContent,
+            dependencies: hitDependencies,
         }
     })
+
+    // Find items that are in allCatalogDepNames but not in usedCatalogDepNames
+    const unused: IResolvedPackageDependencies[] = []
+    allCatalogDepNames.forEach((depName) => {
+        if (!usedCatalogDepNames.has(depName)) {
+            const categoryName = depToCategoryMap.get(depName) || catalogs.name
+            unused.push({
+                dependency: depName,
+                version: `catalog:${categoryName}`,
+            })
+        }
+    })
+
+    return {
+        used: usedResults,
+        unused,
+    }
 }
