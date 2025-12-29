@@ -44,6 +44,7 @@
     },
     "dependencies": {
         "@clack/prompts": "^0.11.0",
+        "ansi-escapes": "^7.2.0",
         "boxen": "^8.0.1",
         "cac": "^6.7.14",
         "console-table-printer": "^2.15.0",

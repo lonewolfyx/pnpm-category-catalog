@@ -1,4 +1,5 @@
 import { confirm, intro, log, outro, spinner } from '@clack/prompts'
+import { link } from 'ansi-escapes'
 import cac from 'cac'
 import { glob } from 'glob'
 import pc from 'picocolors'
@@ -12,6 +13,7 @@ import {
     restoreBackup,
 } from '@/backup.ts'
 import { resolveConfig } from '@/config.ts'
+import { CATALOG_PLACEHOLDER } from '@/constant.ts'
 import { resolvePackageDependencies } from '@/dependencies.ts'
 import { printTable, scanDependencyUsage, stringifyYamlWithTopLevelBlankLine, writeFile } from '@/utils.ts'
 import { batchProcessCatalog, getWorkSpaceYaml } from '@/work.space.ts'
@@ -122,28 +124,23 @@ cli
 
             s.stop(`Done. Congratulations, you have successfully managed. Back ID: ${pc.dim(backupId)}`)
 
-            // 显示创建的分类信息
-            if (workspace.catalogs.categories) {
-                printTable(
-                    workspace.catalogs.categories.reduce(
-                        (
-                            acc: {
-                                Dependencies: string
-                                Catalog: string
-                            }[],
-                            category,
-                        ) => {
-                            for (const pkg of category.packages) {
-                                acc.push({
-                                    Dependencies: pkg,
-                                    Catalog: `catalog:${category.name}`,
-                                })
-                            }
-                            return acc
-                        },
-                        [],
-                    ),
-                )
+            // 显示已成功更新的 package.json 详情
+            console.log()
+            updatedFiles.forEach((i) => {
+                intro(`[update: ${link(pc.blue(pc.bold(i.path.replace(config.cwd, ''))), `file://${i.path}`)}]`)
+                printTable(i.dependencies.map(d => ({
+                    Dependencies: pc.yellow(d.dependency),
+                    Catalog: `${CATALOG_PLACEHOLDER}${pc.blue(d.version.replace(CATALOG_PLACEHOLDER, ''))}`,
+                })))
+            })
+
+            // 显示未使用到的依赖
+            if (pkgFiles.unused) {
+                intro(pc.red('当前您存在选择但未使用上的依赖包'))
+                printTable(pkgFiles.unused.map(i => ({
+                    Dependencies: pc.yellow(i.dependency),
+                    Catalog: `${CATALOG_PLACEHOLDER}${pc.blue(i.version.replace(CATALOG_PLACEHOLDER, ''))}`,
+                })))
             }
         }
         catch (e) {

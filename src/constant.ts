@@ -7,3 +7,5 @@ export const DEPENDENCY_TYPES = ['dependencies', 'devDependencies', 'peerDepende
 // back up about
 export const BACKUP_CACHE_DIR = 'node_modules/.pcc-cache'
 export const BACKUP_MANIFEST_FILE = 'manifest.json'
+
+export const CATALOG_PLACEHOLDER = 'catalog:'
