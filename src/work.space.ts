@@ -112,9 +112,9 @@ interface ProcessCatalogOptionsType {
 }
 
 async function getCatalogName(
-    catalogs: Record<string, any> = {},
+    catalogs: IWorkSpaceYaml['catalogs'],
 ): Promise<string> {
-    const existingCatalogs = Object.keys(catalogs)
+    const existingCatalogs = Object.keys(catalogs || {})
     const NEW_CATALOG = '__new_catalog__'
     let catalogsName: string = ''
 
@@ -123,8 +123,8 @@ async function getCatalogName(
     const selected = await select({
         message: '请选择或创建分类名称',
         options: [
-            { value: NEW_CATALOG, label: '创建新分类' },
             ...combinedCatalogs.map(name => ({ value: name, label: name })),
+            { value: NEW_CATALOG, label: '创建新分类' },
         ],
     }) as string
 
