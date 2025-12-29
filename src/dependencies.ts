@@ -1,4 +1,4 @@
-import type { IConfig, IUpdatePackage, IWorkSpaceContext } from '@/types'
+import type { IConfig, IResolvedPackage, IWorkSpaceContext } from '@/types'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { DEPENDENCY_TYPES } from '@/constant.ts'
@@ -7,7 +7,7 @@ export const resolvePackageDependencies = (
     config: IConfig,
     packagePathMap: string[],
     workspace: IWorkSpaceContext,
-): IUpdatePackage[] => {
+): IResolvedPackage[] => {
     return packagePathMap.map((path: string) => {
         const filePath = resolve(config.cwd, path)
         const fileContent = readFileSync(filePath, 'utf-8')

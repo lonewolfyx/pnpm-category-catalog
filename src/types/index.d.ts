@@ -49,7 +49,7 @@ export interface IWorkSpaceContext {
     }
 }
 
-export interface IUpdatePackage {
+export interface IResolvedPackage {
     path: string
     context: string
     isUpdate: boolean
