@@ -5,7 +5,7 @@ import { confirm, multiselect, outro, select, text } from '@clack/prompts'
 import boxen from 'boxen'
 import { findUp } from 'find-up'
 import { parse, stringify } from 'yaml'
-import { CANCEL_PROCESS } from '@/constant.ts'
+import { CANCEL_PROCESS, DEFAULT_CATALOGS } from '@/constant.ts'
 import { formatDependencyUsage, isCancelProcess } from '@/utils.ts'
 
 export const getWorkSpaceYaml = async (config: IConfig): Promise<IWorkSpace> => {
@@ -111,6 +111,41 @@ interface ProcessCatalogOptionsType {
     usageMap?: DependencyUsageMap
 }
 
+async function getCatalogName(
+    catalogs: Record<string, any> = {},
+): Promise<string> {
+    const existingCatalogs = Object.keys(catalogs)
+    const NEW_CATALOG = '__new_catalog__'
+    let catalogsName: string = ''
+
+    const combinedCatalogs = Array.from(new Set([...DEFAULT_CATALOGS, ...existingCatalogs]))
+
+    const selected = await select({
+        message: '请选择或创建分类名称',
+        options: [
+            { value: NEW_CATALOG, label: '创建新分类' },
+            ...combinedCatalogs.map(name => ({ value: name, label: name })),
+        ],
+    }) as string
+
+    isCancelProcess(selected, CANCEL_PROCESS)
+
+    if (selected === NEW_CATALOG) {
+        catalogsName = await text({
+            message: '请输入分类名称',
+            placeholder: '',
+            validate: (value) => {
+                if (!value || !value.trim())
+                    return '分类名称不能为空'
+                if (combinedCatalogs.includes(value))
+                    return '该分类已存在，请直接在列表中选择'
+            },
+        }) as string
+    }
+
+    return catalogsName
+}
+
 const processCatalog = async (options: ProcessCatalogOptionsType) => {
     const { context, allCatalogs, usageMap } = options
     let continueProcessing = true
@@ -148,40 +183,7 @@ const processCatalog = async (options: ProcessCatalogOptionsType) => {
             // console.log('本轮未选择任何包')
         }
         else {
-            // console.log(context,'context')
-            const existingCatalogs = Object.keys(context.catalogs || {})
-            const NEW_CATALOG = '__new_catalog__'
-            let catalogsName: string
-
-            if (existingCatalogs.length > 0) {
-                const selected = await select({
-                    message: '请选择或创建分类名称',
-                    options: [
-                        { value: NEW_CATALOG, label: '创建新分类' },
-                        ...existingCatalogs.map(name => ({ value: name, label: name })),
-                    ],
-                }) as string
-
-                isCancelProcess(selected, CANCEL_PROCESS)
-
-                if (selected === NEW_CATALOG) {
-                    catalogsName = await text({
-                        message: '请输入分类名称',
-                        placeholder: '',
-                        defaultValue: '',
-                    }) as string
-                }
-                else {
-                    catalogsName = selected
-                }
-            }
-            else {
-                catalogsName = await text({
-                    message: '请输入分类名称',
-                    placeholder: '',
-                    defaultValue: '',
-                }) as string
-            }
+            const catalogsName = await getCatalogName(context.catalogs)
 
             isCancelProcess(catalogsName, CANCEL_PROCESS)
 

@@ -9,3 +9,5 @@ export const BACKUP_CACHE_DIR = 'node_modules/.pcc-cache'
 export const BACKUP_MANIFEST_FILE = 'manifest.json'
 
 export const CATALOG_PLACEHOLDER = 'catalog:'
+
+export const DEFAULT_CATALOGS = ['dev', 'lint', 'test', 'types', 'build']
