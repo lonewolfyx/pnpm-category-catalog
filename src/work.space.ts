@@ -117,30 +117,30 @@ async function getCatalogName(
     catalogs: IWorkSpaceYaml['catalogs'],
 ): Promise<string> {
     const existingCatalogs = Object.keys(catalogs || {})
-    const NEW_CATALOG = '__new_catalog__'
+    const CUSTOM_CATALOG_NAME = '__new__'
     let catalogsName: string = ''
 
     const combinedCatalogs = Array.from(new Set([...DEFAULT_CATALOGS, ...existingCatalogs]))
 
     const selected = await select({
-        message: '请选择或创建分类名称',
+        message: '请选择或自定义分类名称',
         options: [
             ...combinedCatalogs.map(name => ({ value: name, label: name })),
-            { value: NEW_CATALOG, label: '创建新分类' },
+            { value: CUSTOM_CATALOG_NAME, label: '创建新分类' },
         ],
     }) as string
 
     isCancelProcess(selected, CANCEL_PROCESS)
 
-    if (selected === NEW_CATALOG) {
+    if (selected === CUSTOM_CATALOG_NAME) {
         catalogsName = await text({
-            message: '请输入分类名称',
+            message: '请输入自定义分类名称',
             placeholder: '',
             validate: (value) => {
                 if (!value || !value.trim())
-                    return '分类名称不能为空'
+                    return '分类名称不能为空.'
                 if (combinedCatalogs.includes(value))
-                    return '该分类已存在，请直接在列表中选择'
+                    return '该分类已存在，请直接在列表中选择.'
             },
         }) as string
     }
