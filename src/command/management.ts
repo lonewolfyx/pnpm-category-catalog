@@ -46,7 +46,7 @@ export const managementWorkSpaceCatalog = async (config: IConfig): Promise<void 
     const updatedFiles = pkgFiles.used.filter(i => i.isUpdate)
 
     if (!updatedFiles.length) {
-        outro('Since you might have selected an unused dependency package, the package.json did not match, so this process will end.')
+        outro(pc.red('⚠️ Since you might have selected an unused dependency package, the package.json did not match, so this process will end.'))
         printTable(
             workspace.catalogs.categories?.reduce(
                 (
