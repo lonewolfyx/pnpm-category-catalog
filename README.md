@@ -15,7 +15,7 @@ points:
   support
 - **Batch Processing**: Support loop processing until all packages are categorized
 
-<img src="https://github.com/lonewolfyx/pnpm-category-catalog/raw/master/screenshot.gif" alt="screenshot">
+<img src="https://github.com/lonewolfyx/pnpm-category-catalog/raw/master/screenshot.png" alt="screenshot">
 
 ## 🛠️ Usage
 
