@@ -1,5 +1,13 @@
-import type { AllCatalogsType, CatalogsContextType, IConfig, IWorkSpace, IWorkSpaceConfig, IWorkSpaceContext, IWorkSpaceYaml } from '@/types'
-import type { DependencyUsageMap } from '@/utils.ts'
+import type {
+    AllCatalogsType,
+    CatalogsContextType,
+    IConfig,
+    IWorkSpace,
+    IWorkSpaceConfig,
+    IWorkSpaceContext,
+    IWorkSpaceYaml,
+    ProcessCatalogOptionsType,
+} from '@/types'
 import { readFile } from 'node:fs/promises'
 import { confirm, multiselect, outro, select, text } from '@clack/prompts'
 import boxen from 'boxen'
@@ -103,12 +111,6 @@ export const confirmModify = async (options: ConfirmModifyOptions): Promise<IWor
             })),
         },
     }
-}
-
-interface ProcessCatalogOptionsType {
-    allCatalogs: AllCatalogsType[]
-    context: IWorkSpaceYaml
-    usageMap?: DependencyUsageMap
 }
 
 async function getCatalogName(

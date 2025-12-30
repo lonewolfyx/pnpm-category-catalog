@@ -90,3 +90,9 @@ export interface AllCatalogsType {
     name: string
     dependencies: Record<string, string>
 }
+
+export interface ProcessCatalogOptionsType {
+    allCatalogs: AllCatalogsType[]
+    context: IWorkSpaceYaml
+    usageMap?: DependencyUsageMap
+}
