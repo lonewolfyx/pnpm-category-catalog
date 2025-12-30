@@ -4,21 +4,44 @@ on:
   pull_request:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+
+    - name: Set node
+      uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+        cache: pnpm
+
+    - name: Setup
+      run: npm i -g @antfu/ni
+
+    - name: Install
+      run: nci
+
+    - name: Lint
+      run: nr lint
+
   test:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [22.x]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Use Node.js lts/*
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
+          cache: pnpm
 
       - name: Setup
         run: npm i -g @antfu/ni
