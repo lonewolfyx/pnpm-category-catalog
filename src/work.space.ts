@@ -16,7 +16,7 @@ import { findUp } from 'find-up'
 import pc from 'picocolors'
 import { parse, stringify } from 'yaml'
 import { CANCEL_PROCESS, DEFAULT_CATALOGS } from '@/constant.ts'
-import { formatDependencyUsage, isCancelProcess } from '@/utils.ts'
+import { formatDependencyUsage, isCancelProcess, packageSort } from '@/utils.ts'
 
 export const getWorkSpaceYaml = async (config: IConfig): Promise<IWorkSpace> => {
     const workSpaceYamlPath = await findUp('pnpm-workspace.yaml', {
@@ -46,14 +46,14 @@ export const updateCatalogsWithContext = (options: CatalogsContextType) => {
 
     // Check if the node exists; if it does, merge; if it doesn't, create
     if (context.catalogs[catalogsName]) {
-        context.catalogs[catalogsName] = {
+        context.catalogs[catalogsName] = packageSort({
             ...context.catalogs[catalogsName],
             ...dependencies,
-        }
+        })
         // console.log(`✅ ${choice.length} packages have been merged into the catalogs.${catalogsName} node`)
     }
     else {
-        context.catalogs[catalogsName] = dependencies
+        context.catalogs[catalogsName] = packageSort(dependencies)
         // console.log(`✅ ${choice.length} packages have been added to the catalogs.${catalogsName} node`)
     }
     return context

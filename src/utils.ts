@@ -113,3 +113,12 @@ export const isCancelProcess = (value: unknown, message: string) => {
         return process.exit(0)
     }
 }
+
+export const packageSort = (packages: Record<string, string>) =>
+    Object.fromEntries(
+        Object.entries(packages).sort(([a], [b]) =>
+            a.startsWith('@') === b.startsWith('@')
+                ? a.localeCompare(b)
+                : a.startsWith('@') ? -1 : 1,
+        ),
+    )
