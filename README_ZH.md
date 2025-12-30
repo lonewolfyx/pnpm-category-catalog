@@ -12,7 +12,7 @@
 - **交互式操作**：提供友好的命令行交互界面，支持确认、取消和撤销操作
 - **批量处理**: 支持循环处理，直到所有依赖项都被分类
 
-<img src="https://github.com/lonewolfyx/pnpm-category-catalog/raw/master/screenshot.gif" alt="screenshot">
+<img src="https://github.com/lonewolfyx/pnpm-category-catalog/raw/master/screenshot.png" alt="screenshot">
 
 ## 🛠️ 如何使用
 
