@@ -1,4 +1,6 @@
 <div align="center">
+<img src="./logo.svg"/>
+
 <h1>Pnpm Category Catalog</h1>
 
 English | [中文](https://github.com/ScaffoldCore/pnpm-category-catalog/blob/master/README_ZH.md)
