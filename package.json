@@ -26,7 +26,8 @@
         "pcc": "./bin/cli.js"
     },
     "files": [
-        "dist"
+        "dist",
+        "logo.svg"
     ],
     "scripts": {
         "dev": "tsdown --watch",
