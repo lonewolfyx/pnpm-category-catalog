@@ -1,7 +1,7 @@
 export const CANCEL_PROCESS = 'Current operation canceled.'
 
-// dependency type lists
-export const DEPENDENCY_TYPES = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'] as const
+// dependency type lists, async from https://github.com/pnpm/codemod/blob/main/catalog/src/index.ts#L11
+export const DEPENDENCY_TYPES = ['dependencies', 'devDependencies', 'optionalDependencies'] as const
 
 // back up about
 export const BACKUP_CACHE_DIR = 'node_modules/.pcc-cache'
